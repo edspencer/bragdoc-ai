@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/@edspencer/cli-conformance/schemas/cli-contract.schema.json",
+  "name": "BragDoc",
+  "serve": { "args": ["serve", "--port", "{port}", "--data-dir", "{home}/.bragdoc"] },
+  "checks": {
+    "version": true,
+    "help": true,
+    "unknown-flag": true,
+    "service-status": true,
+    "service-status-json": true,
+    "busy": true,
+    "busy-json": true,
+    "serve-banner": true,
+    "serve-health": true
+  }
+}

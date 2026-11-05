@@ -40,6 +40,7 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | Method and path | What it does |
 | --- | --- |
 | `GET /api/health` | `{ "ok": true, "version": "…" }`. Used by the service's readiness check and Docker's health check. |
+| `GET /api/busy` | *From 0.4.0.* Is anything under way that a restart would cut short? `{ "busy": false, "version": "…", "counts": { "import": 0, "judge": 0, "ai": 0 } }`: an import, a judge run, and AI requests running or waiting. Counts only. What [`bragdoc busy`](/reference/cli/#bragdoc-busy) and `service stop` / `restart` ask. |
 | `GET /api/events` | A Server-Sent Events stream: a `change` event (`{ "type": "achievement" }`, `"found"`, `"config"`, …) whenever something changes, on disk or through the app, so pages refresh themselves. |
 | `GET /api/meta` | What this server is: its version and build (commit, time, and whether it's an official release build), its data folder, MCP address, allowed hosts, the current outbound allow-list, and any notices. |
 | `GET /api/network-log` | Recent outbound requests, newest first, for [Network activity](/guarantees/network-activity/): `{ entries, total, toAiInternet }` (`toAiInternet`: the request bytes sent to AI providers on the internet, over the whole log). `?limit=` (default 100, at most 500) and `&offset=`. |

@@ -2,15 +2,15 @@
 // hand-rolled, no dependency, a 12-pixel-high font drawn with half blocks (▀ ▄ █), so it's 6 rows and fits an
 // 80-column terminal, coloured from kraft paper to marigold (Scrapbook's sticky notes, D13).
 //
-// One difference from the siblings, and it matters: **the "BragDoc on <url>" line is always the FIRST line on stdout**,
-// with "Data home:" right after it. Scripts and tests wait for it (test/cli.test.ts, e2e/, smoke-pack from PR6), and a
-// banner printed above it would push it down. So the art comes after those two lines, never before. --quiet prints
-// the first line alone.
+// One difference from the siblings, and it matters: **"BragDoc <version>: <url>" is always the FIRST line on stdout**
+// (cli-contract SPEC §3, D86; it was "BragDoc on <url>" before), with "Data home:" right after it. Scripts and tests
+// wait for it (test/cli.test.ts, smoke-pack, services-real, the conformance runner's serve-banner check), and a banner
+// printed above it would push it down. So the art comes after those two lines, never before, and nothing else the
+// server says goes to stdout at all: warnings and notices are stderr's. --quiet prints the first line alone.
 //
 // The banner and the hints are only for a person at a terminal: none when stdout isn't a TTY (piped, the service's log,
-// CI) unless FORCE_COLOR is set, a one-line title when the terminal is too narrow. Without them the version is a plain
-// "Version:" line. Colour follows Node's own rules (tty.WriteStream#getColorDepth: NO_COLOR, FORCE_COLOR, TERM=dumb,
-// COLORTERM).
+// CI) unless FORCE_COLOR is set, a one-line title when the terminal is too narrow. Colour follows Node's own rules
+// (tty.WriteStream#getColorDepth: NO_COLOR, FORCE_COLOR, TERM=dumb, COLORTERM).
 import tty from 'node:tty';
 
 // Each glyph: 12 pixel rows, `#` set. Rows pair up into one text row each.
@@ -114,17 +114,17 @@ export interface Startup {
   quiet?: boolean;
 }
 
-/** The startup text, for a terminal (or not: `t.isTTY`). The first line is always "BragDoc on <url>". */
+/** The first line on stdout, always (SPEC §3): `BragDoc 0.4.0: http://localhost:2724`. */
+export const firstLine = (o: Pick<Startup, 'version' | 'url'>) => `BragDoc ${o.version}: ${o.url}`;
+
+/** The startup text, for a terminal (or not: `t.isTTY`). The first line is always `firstLine()`. */
 export function startupMessage(o: Startup, t: Terminal = { env: {} }): string {
-  const line = `BragDoc on ${o.url}`;
+  const line = firstLine(o);
   if (o.quiet) return line + '\n';
   const depth = colorDepth(t);
   const out = [line, `Data home: ${o.home}`];
   const showBanner = t.isTTY || (t.env.FORCE_COLOR !== undefined && depth > 1);
-  if (!showBanner) {
-    out.push(`Version: ${o.version}`);
-    return out.join('\n') + '\n';
-  }
+  if (!showBanner) return out.join('\n') + '\n';
   const lines = bannerLines();
   const width = Math.max(...lines.map((l) => l.length));
   // 2 columns of margin; narrower than that, a one-line title rather than a wrapped banner. 0 or unset: the terminal

@@ -13,6 +13,23 @@ export interface HealthResponse {
 }
 
 /**
+ * `GET /api/busy` (cli-contract SPEC §4, D86): is anything under way that a restart would cut short? Counts only, for
+ * every caller, until the contract settles how a caller proves it's local. `busy` is true when any count is above 0.
+ */
+export interface BusyResponse {
+  busy: boolean;
+  version: string;
+  counts: {
+    /** An import writing to the store (`cache/import.lock`, held by a live process): 0 or 1. */
+    import: number;
+    /** A Found judge run in progress: 0 or 1. */
+    judge: number;
+    /** AI requests running or waiting in `ctx.ai`'s queue, across every connection (a judge run's own among them). */
+    ai: number;
+  };
+}
+
+/**
  * The body of every API error (any 4xx/5xx from `/api/*`). `code` is stable and machine-readable (`not_found`,
  * `invalid`, …); `message` is a sentence for people.
  */

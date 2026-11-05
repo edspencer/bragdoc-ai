@@ -22,7 +22,7 @@ Commands
                          unless BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1.
     --data-dir <dir>     the data home (default $BRAGDOC_HOME, else ~/.bragdoc)
     --open               open it in your browser once it's listening
-    --quiet, -q          print just the "BragDoc on <url>" line
+    --quiet, -q          print just the first line, "BragDoc <version>: <url>"
 
   service install        Run BragDoc in the background as a login service (a LaunchAgent on macOS,
                          a systemd user unit on Linux): it starts when you log in, not when the
@@ -36,11 +36,19 @@ Commands
     --json               the same as one JSON document on stdout
   service start | stop | restart
                          Start it, stop it until the next login, or restart it. Stopping doesn't
-                         disable it: it starts again at your next login.
+                         disable it: it starts again at your next login. stop and restart refuse
+                         (exit 75) while BragDoc is busy: an import, a judge run, AI requests.
+    --force              stop or restart all the same
   service logs           The last 50 lines of its log (<data home>/service/bragdoc.log).
     -f, --follow         keep printing what it writes, until Ctrl-C
     -n, --lines <n>      how many lines (default 50)
   service uninstall      Stop it and remove the service. Your data stays.
+
+  busy                   Is the running BragDoc in the middle of something a restart would cut
+                         short? Exits 0 when it isn't, 75 when it is, 3 when nothing is running.
+    --json               the answer as one JSON document on stdout
+    --data-dir <dir>     the data home to find it by (default $BRAGDOC_HOME, else ~/.bragdoc)
+    --port <n>           ask the BragDoc on this port instead
 
   mcp                    An MCP server on stdio, for coding agents: a bridge to the running BragDoc
                          (it reads runtime.json for the address and token).
@@ -64,7 +72,7 @@ Commands
   --version, -v          Print the version.
   --help, -h             Print this help.
 
-Exit codes: 0 ok, 1 error, 2 usage error, 3 not running, 4 not installed (\`service\`).`;
+Exit codes: 0 ok, 1 error, 2 usage error, 3 not running, 4 not installed (\`service\`), 75 busy.`;
 
 /** Resolves with an exit code when there's nothing to run, else undefined while the server runs. */
 async function serve(flags: Record<string, string>): Promise<number | undefined> {
@@ -109,7 +117,7 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
   // a clean exit 0 on SIGTERM (what launchd and systemd send at logout and on `service stop`), and on Ctrl-C. The
   // service is restarted after it all the same (KeepAlive <true/>, Restart=always: D31, Paddock #872). The unref'd
   // timer is a backstop for a handle that would keep the process alive after the server has closed. Installed BEFORE
-  // the banner: whoever waits for "BragDoc on" may stop us the moment they see it, and until a handler exists a SIGTERM
+  // the banner: whoever waits for its first line may stop us the moment they see it, and until a handler exists a SIGTERM
   // kills outright.
   for (const sig of ['SIGTERM', 'SIGINT'] as const)
     process.once(sig, () => {

@@ -451,7 +451,7 @@ test('the CLI: dry run writes nothing; import; re-import; errors are sentences; 
       const timer = setTimeout(() => reject(new Error(`no banner: ${out}`)), 15_000);
       child.stdout!.on('data', (d) => {
         out += d;
-        if (/^BragDoc on /.test(out)) {
+        if (/^BragDoc \S+: /.test(out)) {
           clearTimeout(timer);
           resolve();
         }

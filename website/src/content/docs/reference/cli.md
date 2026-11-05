@@ -1,6 +1,6 @@
 ---
 title: CLI
-description: "Every bragdoc command and option: serve, service, guide, mcp, import and dev, with exit codes."
+description: "Every bragdoc command and option: serve, service, busy, guide, mcp, import and dev, with exit codes."
 ---
 
 :::note[Tracking `next`]
@@ -15,7 +15,7 @@ bragdoc [command] [options]
 ## `bragdoc serve`
 
 The default: `bragdoc` on its own does the same. Runs BragDoc in the foreground, serving the web app and its API, and
-prints `BragDoc on http://localhost:2724` once it's listening.
+prints `BragDoc 0.4.0: http://localhost:2724` (its version, then its address) once it's listening.
 
 | Option | Meaning |
 | --- | --- |
@@ -23,7 +23,7 @@ prints `BragDoc on http://localhost:2724` once it's listening.
 | `--host <addr>` | The address to listen on. Default `127.0.0.1`. Anything but a loopback address is refused unless `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1`. |
 | `--data-dir <dir>` | The data folder. Default `$BRAGDOC_HOME`, else `~/.bragdoc`. |
 | `--open` | Open it in your browser once it's listening. |
-| `--quiet`, `-q` | Print only the `BragDoc on <url>` line. |
+| `--quiet`, `-q` | Print only the first line, `BragDoc <version>: <url>`. |
 
 ## `bragdoc service`
 
@@ -36,8 +36,8 @@ when you log in (not when the computer boots), runs as you, and is restarted if 
 | `bragdoc service install` | Install and start it. Takes `--port`, `--data-dir`, and `--dry-run` (print the service definition and write nothing). |
 | `bragdoc service status` | Whether it's installed, running and answering; the version installed and the version running; the port, the data folder and the log. `--json` prints the same as one JSON document. |
 | `bragdoc service start` | Start it, and wait until it answers. |
-| `bragdoc service stop` | Stop it until the next login. It stays installed and enabled, as `systemctl --user stop` and `launchctl bootout` leave it; to keep it off for good, uninstall it. |
-| `bragdoc service restart` | Restart it. |
+| `bragdoc service stop` | Stop it until the next login. It stays installed and enabled, as `systemctl --user stop` and `launchctl bootout` leave it; to keep it off for good, uninstall it. Refused while BragDoc is [busy](#bragdoc-busy), unless `--force`. |
+| `bragdoc service restart` | Restart it. Refused while BragDoc is [busy](#bragdoc-busy), unless `--force`. |
 | `bragdoc service logs` | Print the last 50 lines of its log. `-f` (`--follow`) keeps printing what it writes; `-n <lines>` (`--lines`) prints another number of lines. |
 | `bragdoc service uninstall` | Stop it and remove the service. Your data and its log stay. |
 
@@ -49,6 +49,26 @@ and `bragdoc service logs` reads it from there, until you run `bragdoc service i
 **Exit codes:** `service status` exits 0 when BragDoc is answering, 3 when it's installed but not running or not
 answering, and 4 when it isn't installed, with or without `--json`. `start`, `stop`, `restart` and `logs` exit 4 when
 it isn't installed. These are the same codes `systemctl status` uses, so a script can tell the cases apart.
+
+**Busy:** *from 0.4.0,* `stop` and `restart` first ask the running BragDoc whether it's in the middle of something a
+restart would cut short, the same question as [`bragdoc busy`](#bragdoc-busy). If it is, they say what, change
+nothing, and exit 75: `BragDoc is busy: 1 judge run is running. Try again once it has finished, or use --force.` With
+`--force` they print the same sentence, starting `Overriding:`, and go ahead. `uninstall` doesn't ask.
+
+## `bragdoc busy`
+
+*From 0.4.0.* Asks the running BragDoc whether it's busy: importing, running the [judge](/ai/the-judge/), or with AI
+requests running or waiting. It's for scripts, and for a Docker update hook (`docker exec <container> bragdoc busy`),
+where there's no `service` to ask. It finds BragDoc through `runtime.json` in the data folder.
+
+| Option | Meaning |
+| --- | --- |
+| `--json` | Print the answer as one JSON document: `running`, `busy`, `url`, `version` and `counts` (`import`, `judge`, `ai`). |
+| `--data-dir <dir>` | The data folder to find it by (default `$BRAGDOC_HOME`, else `~/.bragdoc`). |
+| `--port <n>` | Ask the BragDoc on this port instead. |
+
+**Exit codes:** 0 when it isn't busy, 75 when it is, 3 when nothing is running, and 1 when something answered that
+isn't BragDoc's busy check (an older BragDoc, say).
 
 ## `bragdoc guide`
 
@@ -137,8 +157,10 @@ It exits 1 when the call is refused or fails, with the reason (`ai_off`, `not_co
 | `--help`, `-h` | Print the help. |
 
 **Exit codes:** 0 success, 1 error, 2 usage error (with the usage printed). `bragdoc service` adds 3 (not running)
-and 4 (not installed), above.
+and 4 (not installed), and `busy`, `service stop` and `service restart` add 75 (busy), above.
 
-**What `serve` prints:** the first line is always `BragDoc on <url>`, then `Data home: <folder>`. In a terminal (or
-with `FORCE_COLOR` set) a banner and a hint follow, and, when it's running from npx's cache, how to keep it running
-with an installed copy; otherwise just a `Version:` line. With `--quiet`, only the first line.
+**What `serve` prints:** the first line is always `BragDoc <version>: <url>` (`BragDoc 0.4.0: http://localhost:2724`),
+then `Data home: <folder>`. In a terminal (or with `FORCE_COLOR` set) a banner and a hint follow, and, when it's
+running from npx's cache, how to keep it running with an installed copy. With `--quiet`, only the first line. Warnings
+go to stderr, never stdout, so a script can wait for that first line. *Before 0.4.0 it was `BragDoc on <url>`, with a
+`Version:` line after the data folder.*

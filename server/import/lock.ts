@@ -58,3 +58,13 @@ export function takeImportLock(dataDir: string, now = new Date()): () => void {
     if (holder(file)?.pid === process.pid) fs.unlinkSync(file);
   };
 }
+
+/**
+ * Whether an import into this data home is under way, for GET /api/busy: this process's own (POST /api/import/apply),
+ * or another's whose lock is fresh and whose pid is alive (`bragdoc import` from a terminal). One small file read.
+ */
+export function importRunning(dataDir: string, now = new Date()): boolean {
+  if (ours) return true;
+  const h = holder(lockFile(dataDir));
+  return h !== null && h.pid !== process.pid && now.getTime() - h.startedAt < STALE_MS && alive(h.pid);
+}

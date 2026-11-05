@@ -119,6 +119,8 @@ export interface JudgeEngine extends Judge {
   cancel(): void;
   /** Settles when no run is in progress (shutdown waits for it, so a run's last line is written). */
   idle(): Promise<void>;
+  /** Whether a run is in progress: `status()` without its walk over Found, for GET /api/busy. */
+  busy(): boolean;
   status(): AiJudgeStatus;
   /** The candidates a run would take now (or of `ids`, for Judge again). */
   eligible(ids?: string[]): FoundCandidate[];
@@ -449,6 +451,7 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
       return () => runEnd.delete(fn);
     },
     idle: () => current.then(() => {}),
+    busy: () => running !== null,
     eligible,
     prepare,
     ensureInstructions,

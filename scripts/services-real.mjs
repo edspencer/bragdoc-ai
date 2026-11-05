@@ -168,8 +168,19 @@ try {
   assert.equal(up.log, path.join(data, 'service', 'bragdoc.log'));
   assert.deepEqual(up.warnings, []);
 
-  step('service restart');
+  step('busy: the idle service answers 0, through runtime.json and through --port (D86)');
+  const idle = bdx('busy', '--json');
+  assert.equal(idle.code, 0, idle.stderr);
+  const answer = JSON.parse(idle.stdout);
+  assert.equal(answer.running, true);
+  assert.equal(answer.busy, false);
+  assert.equal(answer.version, version);
+  assert.deepEqual(answer.counts, { import: 0, judge: 0, ai: 0 });
+  assert.equal(bdx('busy', '--port', String(port)).code, 0);
+
+  step('service restart (idle, so the busy check lets it through; --force is accepted too)');
   assert.match(bd('service', 'restart'), new RegExp(`is running at ${url}`));
+  assert.match(bd('service', 'restart', '--force'), new RegExp(`is running at ${url}`));
 
   // serve exits 0 on SIGTERM, so the second is the case a conditional KeepAlive / Restart=on-failure would leave down
   step('KeepAlive / Restart=always: a crash (SIGKILL) and a clean exit (SIGTERM, exit 0) both come back');
@@ -184,6 +195,7 @@ try {
   assert.equal(stopped.code, 3, 'a stopped service: exit 3');
   assert.match(stopped.stdout, /State: +stopped/);
   assert.equal(statusJson(3).stopped, true);
+  assert.equal(bdx('busy').code, 3, 'busy with the service stopped: nothing answers, exit 3');
   // cli-contract SPEC §1: stop doesn't disable, so the next login (or boot, with linger) starts it again
   assert.ok(enabled(), 'still enabled after stop');
   assert.ok(fs.existsSync(unitFile), 'stop keeps the unit');
@@ -196,7 +208,7 @@ try {
   assert.ok(fs.existsSync(log), `${log} exists`);
   const last = bd('service', 'logs', '-n', '200');
   console.log(last.slice(-2000));
-  assert.match(last, new RegExp(`BragDoc on ${url}`));
+  assert.match(last, new RegExp(`BragDoc \\S+: ${url}`));
   const logs = await new Promise((resolve) => {
     // its own process group, so nothing it started outlives the kill
     const child = spawn(process.execPath, [cli, 'service', 'logs', '-f', '-n', '0'], { env, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
@@ -219,7 +231,7 @@ try {
     });
   });
   console.log(logs.slice(-2000));
-  assert.match(logs, new RegExp(`BragDoc on ${url}`), '-f printed what the restarted service wrote');
+  assert.match(logs, new RegExp(`BragDoc \\S+: ${url}`), '-f printed what the restarted service wrote');
 
   step('service uninstall');
   assert.match(bd('service', 'uninstall'), /Your data in .* is untouched/);

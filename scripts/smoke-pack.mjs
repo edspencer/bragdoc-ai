@@ -179,8 +179,8 @@ dns.lookup = no('dns'); http.request = http.get = no('http'); https.request = ht
     const timer = setTimeout(() => reject(new Error(`the server didn't start: ${printed}`)), 30000);
     server.stdout.on('data', (d) => {
       printed += d;
-      // "BragDoc on <url>" is the first line on stdout, always (banner.ts)
-      const m = printed.match(/^BragDoc on (http:\/\/localhost:\d+)\nData home: .*\n/);
+      // "BragDoc <version>: <url>" is the first line on stdout, always (banner.ts, cli-contract SPEC §3)
+      const m = printed.match(/^BragDoc \d+\.\d+\.\d+\S*: (http:\/\/localhost:\d+)\nData home: .*\n/);
       if (m) {
         clearTimeout(timer);
         resolve(m[1]);
