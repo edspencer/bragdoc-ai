@@ -18,8 +18,9 @@ BragDoc 0.6.0 is available (you have 0.5.0).
 ```
 
 It works with or without the [login service](/getting-started/running-as-a-service/). Without one, it
-installs the new version, and the next `bragdoc` you start is the new one. If a BragDoc is answering in a terminal, it
-asks you to stop it first (Ctrl+C) and exits 3; run `bragdoc update` again once it's stopped.
+installs the new version, and the next `bragdoc` you start is the new one. If you run `bragdoc serve` yourself and
+it's answering, **`update` asks you to stop it first and exits 3**; stop it (Ctrl+C), run `update` again, then start
+`bragdoc` again.
 
 ## Options
 
