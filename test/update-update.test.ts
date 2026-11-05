@@ -1,4 +1,4 @@
-// From edspencer/cli-contract test/update.test.ts @ 0.2; local changes: imports from server/update/ and the published runner's
+// From edspencer/cli-contract test/update.test.ts @ 1.0; local changes: imports from server/update/ and the published runner's
 // schema validator; `fetch`'s type is server/update/health.ts's (a string URL). The tests of the reference code BragDoc
 // copied (D88).
 //

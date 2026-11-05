@@ -1,4 +1,4 @@
-// From edspencer/cli-contract reference/semver.ts @ 0.2; local changes: none.
+// From edspencer/cli-contract reference/semver.ts @ 1.0; local changes: none.
 //
 // The small semver `update` needs (SPEC §5 step 4): is the target newer, is it a prerelease, and does its
 // `engines.node` accept this Node. Node built-ins only.

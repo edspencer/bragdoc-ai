@@ -1,4 +1,4 @@
-// From edspencer/cli-contract reference/busy-client.ts @ 0.2 (unchanged since 0.1); local changes: the instance is
+// From edspencer/cli-contract reference/busy-client.ts @ 1.0 (unchanged since 0.1); local changes: the instance is
 // found through BragDoc's own runtime.json (server/runtime.ts readRuntimeAddress: the file also holds the MCP token,
 // which isn't needed here) or a port the caller names, not a URL, and asked through egress.ts's probeLoopback
 // (127.0.0.1 only, unlogged: D9, D51) rather than fetch (`get`, injectable, in place of `fetch`); the exit codes are

@@ -1,4 +1,4 @@
-// From edspencer/cli-contract reference/install-method.ts @ 0.2; local changes: none.
+// From edspencer/cli-contract reference/install-method.ts @ 1.0; local changes: none.
 //
 // How was this copy installed? (SPEC §6.) `update` can't run `npm install -g` on a checkout, in a container or out of
 // npx's cache, so before it touches anything it works out which of the table's ten rows it's in, and either picks the

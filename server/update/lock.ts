@@ -1,4 +1,4 @@
-// From edspencer/cli-contract reference/lock.ts @ 0.2; local changes: `isPidAlive` comes from BragDoc's
+// From edspencer/cli-contract reference/lock.ts @ 1.0; local changes: `isPidAlive` comes from BragDoc's
 // server/runtime.ts (its runtime.json isn't the reference's).
 //
 // `<home>/update.lock`: one update at a time (SPEC §5 step 1). Two at once is easy to cause (an Ansible run and a

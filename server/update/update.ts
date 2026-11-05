@@ -1,4 +1,4 @@
-// From edspencer/cli-contract reference/update.ts @ 0.2; local changes: the service hooks may return promises
+// From edspencer/cli-contract reference/update.ts @ 1.0; local changes: the service hooks may return promises
 // (BragDoc's service manager is async); a `beforeStart` hook for SPEC §5 step 14's backup, whose path a rollback that
 // needs a person names; `fetch`'s type as in health.ts.
 //

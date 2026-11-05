@@ -1,4 +1,4 @@
-// From edspencer/cli-contract test/helpers.ts @ 0.2; local changes: imports from server/update/ and the published runner's
+// From edspencer/cli-contract test/helpers.ts @ 1.0; local changes: imports from server/update/ and the published runner's
 // schema validator. The tests of the reference code BragDoc copied (D88).
 //
 import fs from 'node:fs';
