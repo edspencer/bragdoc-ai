@@ -1,5 +1,36 @@
 # @bragdoc/local
 
+## 0.6.0
+
+### Minor Changes
+
+- [#463](https://github.com/edspencer/bragdoc-ai/pull/463) [`0f946b4`](https://github.com/edspencer/bragdoc-ai/commit/0f946b4cbba8924042b437f9624ea93885f3f79d) Thanks [@edspencer](https://github.com/edspencer)! - `bragdoc service install` from a git checkout now refuses unless you add `--from-checkout`: a service that runs a
+  checkout runs whatever it last built, and breaks when the checkout is cleaned or rebuilt. Install BragDoc with
+  `npm i -g @bragdoc/local` instead, or add the flag if you mean it. A service installed that way is refreshed and
+  restarted from the checkout without the flag again.
+  
+  `bragdoc service install`, `uninstall`, `start`, `stop` and `restart` take `--json`: one JSON document on stdout
+  (`ok`, `action`, `error` when it failed, then the same fields as `service status --json`), and the messages on
+  stderr.
+  
+  **For scripts:** a `service install` from a checkout that used to succeed now exits 1 without `--from-checkout`. The
+  exit codes with `--json` are the same as without it, and `service logs --json` is a usage error (exit 2).
+
+### Patch Changes
+
+- [#462](https://github.com/edspencer/bragdoc-ai/pull/462) [`97682e3`](https://github.com/edspencer/bragdoc-ai/commit/97682e305dcff258b489fb87fe33786a7a5e6a81) Thanks [@edspencer](https://github.com/edspencer)! - `bragdoc service install` no longer leaves a service file behind when systemd or launchd refuses a first install (no
+  user session to load it into, say). Before, `service status` then said BragDoc was installed but not running, and the
+  next login tried to start it. Re-installing over a working service still keeps it if the manager refuses.
+
+- [#466](https://github.com/edspencer/bragdoc-ai/pull/466) [`b31d8ae`](https://github.com/edspencer/bragdoc-ai/commit/b31d8ae9800cbb8742a530860f3197cc429a5d25) Thanks [@edspencer](https://github.com/edspencer)! - `bragdoc service install` on Linux now checks whether lingering is on (`loginctl show-user`), and only when it's off
+  says why it matters (the service stops when you log out) and prints `sudo loginctl enable-linger <user>`, as `bragdoc
+  doctor` does. Before, it told everyone to run `loginctl enable-linger` (without `sudo`), and `service status` repeated
+  it. When `loginctl` can't answer (in a container, say) it says nothing. With `--json`, the advice is in the document's
+  `warnings`. BragDoc never runs `sudo` itself.
+
+- [#464](https://github.com/edspencer/bragdoc-ai/pull/464) [`8c6ce9d`](https://github.com/edspencer/bragdoc-ai/commit/8c6ce9db54ee82f0a3c7724b597aa4c7f62fd3ba) Thanks [@edspencer](https://github.com/edspencer)! - Running `bragdoc service install` again keeps the port and data folder the service already has, unless you give new
+  ones with `--port` or `--data-dir`. Before, a reinstall without `--port` moved the service back to port 2724.
+
 ## 0.5.0
 
 ### Minor Changes
