@@ -110,6 +110,9 @@ const SHOW_PROPS = 'LoadState,ActiveState,SubState,MainPID,ExecMainStatus,ExecMa
 export function systemdManager({ dir, run, user }: SystemdOptions): ServiceManager {
   const file = path.join(dir, SYSTEMD_UNIT);
 
+  // our own unit file (a fixed name): the one removal here, by `uninstall` and by a first install the manager refused
+  const removeUnit = () => fs.rmSync(file, { force: true });
+
   const systemctl = async (args: string[], okCodes: number[] = [0]) => {
     const r = await run('systemctl', ['--user', ...args]);
     if (r.code === 127) throw new ServiceManagerError("systemctl is not available: BragDoc's service needs systemd's per-user instance (`systemctl --user`)");
@@ -161,17 +164,30 @@ export function systemdManager({ dir, run, user }: SystemdOptions): ServiceManag
     parseArgv: parseUnitArgv,
     installCommands: () => ['systemctl --user daemon-reload', `systemctl --user enable --quiet ${SYSTEMD_UNIT}`, `systemctl --user start ${SYSTEMD_UNIT}`],
     async install(spec) {
+      const existed = fs.existsSync(file);
       fs.mkdirSync(spec.cwd, { recursive: true });
       const changed = writeIfChanged(file, renderUnit(spec));
-      // without it the manager keeps serving its cached copy of the old unit, and an upgrade silently changes nothing
-      if (changed) await systemctl(['daemon-reload']);
-      await systemctl(['enable', '--quiet', SYSTEMD_UNIT]);
-      // `enable --now` and `start` leave an active unit alone, so a reinstall over a running service restarts it, even
-      // when the unit is byte for byte the same (a global npm install's path carries no version, so `bragdoc update`'s
-      // refresh writes an identical unit, and the old process would go on serving). Only then: systemd allows five
-      // starts in ten seconds (cli-contract SPEC §1, §7)
-      const st = await status();
-      await systemctl([st.running ? 'restart' : 'start', SYSTEMD_UNIT]);
+      try {
+        // without it the manager keeps serving its cached copy of the old unit, and an upgrade silently changes nothing
+        if (changed) await systemctl(['daemon-reload']);
+        await systemctl(['enable', '--quiet', SYSTEMD_UNIT]);
+        // `enable --now` and `start` leave an active unit alone, so a reinstall over a running service restarts it,
+        // even when the unit is byte for byte the same (a global npm install's path carries no version, so `bragdoc
+        // update`'s refresh writes an identical unit, and the old process would go on serving). Only then: systemd
+        // allows five starts in ten seconds (cli-contract SPEC §1, §7)
+        const st = await status();
+        await systemctl([st.running ? 'restart' : 'start', SYSTEMD_UNIT]);
+      } catch (err) {
+        // A first install systemd refused (no systemd here, no user bus, a start that failed) mustn't leave a unit
+        // behind: `status` would then say it's installed, and the next login would try it. A reinstall keeps its
+        // unit, which is what's installed either way (cli-contract d5ddc0e). Best effort: systemd may be the problem
+        if (!existed) {
+          await systemctl(['disable', '--quiet', SYSTEMD_UNIT], [0, 1, 5]).catch(() => {});
+          removeUnit();
+          await systemctl(['daemon-reload']).catch(() => {});
+        }
+        throw err;
+      }
       return { changed };
     },
     // start, stop and restart never touch enable/disable: those decide whether it comes back at the next login, a
@@ -195,7 +211,7 @@ export function systemdManager({ dir, run, user }: SystemdOptions): ServiceManag
       const existed = fs.existsSync(file);
       // 1 / 5: no such unit, which is what was wanted
       await systemctl(['disable', '--now', '--quiet', SYSTEMD_UNIT], [0, 1, 5]);
-      fs.rmSync(file, { force: true });
+      removeUnit();
       await systemctl(['daemon-reload']);
       await systemctl(['reset-failed', SYSTEMD_UNIT], [0, 1, 5]);
       return existed;
