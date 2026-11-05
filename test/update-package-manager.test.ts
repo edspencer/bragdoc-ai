@@ -1,4 +1,4 @@
-// From edspencer/cli-contract test/package-manager.test.ts @ 0.2; local changes: imports from server/update/ and the published runner's
+// From edspencer/cli-contract test/package-manager.test.ts @ 1.0; local changes: imports from server/update/ and the published runner's
 // schema validator. The tests of the reference code BragDoc copied (D88).
 //
 import { test } from 'node:test';

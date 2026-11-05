@@ -1,4 +1,4 @@
-// From edspencer/cli-contract reference/package-manager.ts @ 0.2; local changes: commands run through server/proc.ts's
+// From edspencer/cli-contract reference/package-manager.ts @ 1.0; local changes: commands run through server/proc.ts's
 // `runSync` (D9: no other file may start a process), not `spawnSync` here; no `shell: true` (Windows isn't supported
 // yet, D14).
 //

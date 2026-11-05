@@ -1,4 +1,4 @@
-// From edspencer/cli-contract reference/health.ts @ 0.2; local changes: no default `fetch`, as in registry.ts: the
+// From edspencer/cli-contract reference/health.ts @ 1.0; local changes: no default `fetch`, as in registry.ts: the
 // caller passes egress.ts's loopback probe (D51).
 //
 // Asking `/api/health` (SPEC §8): once, until it answers, or until it answers with one version. The service commands

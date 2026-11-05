@@ -1,4 +1,4 @@
-// From edspencer/cli-contract reference/registry.ts @ 0.2; local changes: no default `fetch`: BragDoc's requests go
+// From edspencer/cli-contract reference/registry.ts @ 1.0; local changes: no default `fetch`: BragDoc's requests go
 // through egress.ts (D9, D87), so the caller passes `Egress.registry()`'s, and none given is an error rather than a
 // bare `globalThis.fetch`.
 //

@@ -1,4 +1,4 @@
-// From edspencer/cli-contract reference/update-check.ts @ 0.2; local changes: none.
+// From edspencer/cli-contract reference/update-check.ts @ 1.0; local changes: none.
 //
 // `<home>/update-check.json`: what the last registry question found (SPEC §3). Only `update`, `update --check` and
 // `doctor` ask the registry; they write the answer here, and `service status` repeats it without opening a socket.

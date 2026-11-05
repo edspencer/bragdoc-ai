@@ -16,6 +16,33 @@ The last of the [CLI contract](https://github.com/edspencer/cli-contract) for `b
   stdout, the messages on stderr, and the same exit codes.
 - **A first install that systemd or launchd refuses leaves no service file behind**, so `service status` no longer
   says it's installed.
+- **On Linux, `bragdoc service install` says to run `sudo loginctl enable-linger <user>` only when lingering is
+  off**, and says why: without it, the service stops when you log out. Before, it told everyone, without `sudo`.
+
+## 0.5.0: update and doctor
+
+More of the [CLI contract](https://github.com/edspencer/cli-contract). [Updating](/getting-started/updating/) has the
+whole story.
+
+- **`bragdoc update`** updates BragDoc to the latest version from npm, and the login service with it. It checks that
+  BragDoc isn't busy before stopping anything, installs, starts it again, waits until the new version answers, and
+  puts the old version back if it doesn't. `--check` says whether there's a newer version and changes nothing, and
+  `--to <version|tag>` goes somewhere particular (it's the only way back). See
+  [the CLI reference](/reference/cli/#bragdoc-update).
+- **If the new version writes a newer format of your files, your data is copied to `backups/pre-<version>/` first.**
+- **A Docker, npx or checkout install says what to run instead**, and exits 5.
+- **`bragdoc doctor`** checks your install and gives a fix for each problem. It checks Node, how BragDoc was
+  installed, the service, the running version, the port, lingering on Linux, the data folder, `config.yaml`, `git`
+  and `gh`, and whether there's a newer version (`--offline` skips that one). See
+  [the CLI reference](/reference/cli/#bragdoc-doctor).
+- **Nothing checks for a new version by itself.** Only `update`, `update --check` and `doctor` ask the npm registry,
+  and only when you run them. Settings → Network activity lists those requests.
+- **`bragdoc service install --refresh`** re-writes the installed service for this BragDoc, keeping its port and data
+  folder. `service install` over a running service now restarts it.
+- **The Docker image has `bragdoc` on its `PATH`**, so a Watchtower pre-update hook can run `bragdoc busy`.
+- **For scripts:** `update` adds the exit codes 5 (it can't update itself), 6 (the update failed and the old version
+  is running again) and 7 (it failed and couldn't be undone). `update`, `doctor` and `service install` reject an
+  option they can't act on with exit 2.
 
 ## 0.4.0: busy, and serve's first line
 
